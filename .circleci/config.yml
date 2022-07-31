@@ -37,6 +37,36 @@ commands:
               cd  backend
               npm install
               npm run migrations:revert
+
+  install_awscli:
+    description: Install AWS CLI v2
+    steps:
+      - run:
+          name: Install AWS CLI v2
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+
+  install_ansible:
+    description: Install Ansible
+    steps:
+      - run:
+          name: Install Ansible
+          command: |
+            python3 -m pip install --user ansible
+
+  install_nodejs:
+    description: install-node.js.13.8.0
+    steps:
+      - run:
+          name: install-node.js.13.8.0
+          command: |
+            curl fsSL http://deb.nodesource.com/setup_lts.x | sudo -E bash -
+            sudo apt install -y nodejs
+
+            sudo npm install --global n
+            sudo n 13.8.0
             
 jobs:
   build-frontend:
@@ -193,15 +223,18 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.16
+      - image: cimg/python:3.10
     steps:
       - checkout
+      - install_awscli
+      - install_ansible
+      # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["84:66:bd:0c:5e:8d:96:16:9d:e2:e1:ea:ae:9b:5b:73"]
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache tar gzip ansible aws-cli
+            apk add --update --no-cache tar gzip 
       - attach_workspace:
           at: ~/
       - run:
@@ -226,6 +259,42 @@ jobs:
           paths:
             - project/backend
       - destroy-environment
+
+  # configure-infrastructure:
+  #   docker:
+  #     - image: python:3.7-alpine3.16
+  #   steps:
+  #     - checkout
+  #     - add_ssh_keys:
+  #         fingerprints:
+  #           - 'ab:52:25:68:df:4c:3a:d5:48:18:55:d8:f9:3b:df:de'
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           apk add --update --no-cache tar gzip ansible aws-cli
+  #     - attach_workspace:
+  #         at: ~/
+  #     - run:
+  #         name: Configure server
+  #         command: |
+  #           # add environment variables to server
+  #           echo ENVIRONMENT=production > backend/.env
+  #           echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
+  #           echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
+  #           echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
+  #           echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
+  #           echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
+  #           echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
+  #           echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
+  #           echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
+  #           echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
+  #           cat backend/.env
+  #           cd .circleci/ansible
+  #           ansible-playbook -i inventory.txt configure-server.yml
+  #     - persist_to_workspace:
+  #         root: ~/
+  #         paths:
+  #           - project/backend
 
   run-migrations:
     docker:
