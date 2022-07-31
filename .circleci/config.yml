@@ -295,7 +295,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0 # safest to use to avoid migration errors
+      - image: circleci/node:13.8.0 
     steps:
       - checkout
       - run:
@@ -319,7 +319,10 @@ jobs:
           command: |
             if grep -q "success" ~/project/backend/migrations.txt
             then
-              curl --insecure https://kvdb.io/ViWzkdySLpmD9TMMzU5Fzq/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
+              curl  --insecure https://kvdb.io/73AzZCsXikP6F1anyHtZ2p/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              echo "migrated ----------"
+            else
+             echo "No migration happened"
             fi
       - destroy-environment
      
@@ -470,10 +473,10 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
