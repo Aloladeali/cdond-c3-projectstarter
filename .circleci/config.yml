@@ -197,8 +197,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints:
-            - '84:66:bd:0c:5e:8d:96:16:9d:e2:e1:ea:ae:9b:5b:73'
+          fingerprints: ["84:66:bd:0c:5e:8d:96:16:9d:e2:e1:ea:ae:9b:5b:73"]
       - run:
           name: Install dependencies
           command: |
