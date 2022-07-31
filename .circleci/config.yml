@@ -383,14 +383,14 @@ workflows:
       # - scan-frontend:
       #     requires: [build-frontend]
       - deploy-infrastructure:
-          #requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [build-frontend, build-backend]
           filters:
             branches:
               only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
